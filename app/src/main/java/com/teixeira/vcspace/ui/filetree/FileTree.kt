@@ -24,15 +24,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidViewBinding
 import com.teixeira.vcspace.activities.base.LocalLifecycleScope
 import com.teixeira.vcspace.databinding.LayoutFileTreeBinding
+import com.teixeira.vcspace.file.File
+import com.teixeira.vcspace.file.newFile
+import com.teixeira.vcspace.file.toFile
 import io.github.dingyi222666.view.treeview.Tree
 import io.github.dingyi222666.view.treeview.TreeView
 import kotlinx.coroutines.launch
-import java.io.File
+import java.io.File as JFile
 
 @Composable
 fun FileTree(
   modifier: Modifier = Modifier,
-  path: String = Environment.getExternalStorageDirectory().absolutePath,
+  path: File = JFile(Environment.getExternalStorageDirectory().absolutePath).toFile(),
   onFileLongClick: (File) -> Unit = {},
   onFileClick: (File) -> Unit
 ) {
@@ -68,13 +71,13 @@ fun FileTree(
 
 private fun createTree(
   fileListLoader: FileListLoader,
-  rootPath: String
+  rootPath: File
 ): Tree<File> {
   val tree = Tree.createTree<File>()
 
   tree.apply {
     this.generator = FileNodeGenerator(
-      File(rootPath),
+      rootPath,
       fileListLoader
     )
 

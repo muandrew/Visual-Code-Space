@@ -16,10 +16,11 @@
 package com.teixeira.vcspace.ui.filetree
 
 import android.os.Parcelable
+import com.teixeira.vcspace.file.File
+import com.teixeira.vcspace.file.newFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
-import java.io.File
 
 @Parcelize
 class FileListLoader(
@@ -32,10 +33,10 @@ class FileListLoader(
     }
   }
 
-  suspend fun loadFileList(path: String) = withContext(Dispatchers.IO) {
-    val result = cacheFiles[path] ?: run {
-      val files = getFileList(File(path))
-      cacheFiles[path] = files.toMutableList()
+  suspend fun loadFileList(path: File) = withContext(Dispatchers.IO) {
+    val result = cacheFiles[path.absolutePath] ?: run {
+      val files = getFileList(path)
+      cacheFiles[path.absolutePath] = files.toMutableList()
 
       // load sub directory, but only load one level
       files.forEach {
@@ -50,7 +51,7 @@ class FileListLoader(
     result
   }
 
-  fun getCacheFileList(path: String) = cacheFiles[path] ?: emptyList()
+  fun getCacheFileList(path: File) = cacheFiles[path.absolutePath] ?: emptyList()
 
   fun removeFileInCache(currentFile: File): Boolean {
     if (currentFile.isDirectory) {

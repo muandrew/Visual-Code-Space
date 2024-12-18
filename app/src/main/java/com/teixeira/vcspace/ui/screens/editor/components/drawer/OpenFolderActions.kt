@@ -15,6 +15,8 @@
 
 package com.teixeira.vcspace.ui.screens.editor.components.drawer
 
+import android.content.ContentProvider
+import android.content.ContentResolver
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.basicMarquee
@@ -51,6 +53,8 @@ import com.blankj.utilcode.util.UriUtils
 import com.teixeira.vcspace.PreferenceKeys
 import com.teixeira.vcspace.app.strings
 import com.teixeira.vcspace.extensions.toFile
+import com.teixeira.vcspace.file.InternalDFile
+import com.teixeira.vcspace.file.toFile
 import com.teixeira.vcspace.preferences.defaultPrefs
 import com.teixeira.vcspace.resources.R
 import com.teixeira.vcspace.ui.screens.file.FileExplorerViewModel
@@ -68,7 +72,12 @@ fun OpenFolderActions(
     contract = ActivityResultContracts.OpenDocumentTree()
   ) { uri ->
     if (uri != null) DocumentFile.fromTreeUri(context, uri)?.let {
-      fileExplorerViewModel.openFolder(UriUtils.uri2File(it.uri))
+      val file = if (ContentResolver.SCHEME_CONTENT == it.uri.scheme) {
+        InternalDFile(context, it)
+      } else {
+        UriUtils.uri2File(it.uri).toFile()
+      }
+      fileExplorerViewModel.openFolder(file)
     }
   }
 
@@ -93,7 +102,7 @@ fun OpenFolderActions(
       onDismissRequest = { showRecentFoldersDialog = false },
       onOpenFolder = {
         val treeUri = DocumentFile.fromFile(it).uri
-        fileExplorerViewModel.openFolder(UriUtils.uri2File(treeUri))
+        fileExplorerViewModel.openFolder(UriUtils.uri2File(treeUri).toFile())
         showRecentFoldersDialog = false
       }
     )

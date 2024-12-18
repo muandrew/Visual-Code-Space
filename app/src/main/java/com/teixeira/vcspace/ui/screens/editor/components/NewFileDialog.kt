@@ -34,13 +34,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.teixeira.vcspace.activities.base.LocalLifecycleScope
+import com.teixeira.vcspace.file.File
 import com.teixeira.vcspace.resources.R
 import com.teixeira.vcspace.resources.R.string
 import com.teixeira.vcspace.ui.LocalToastHostState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.IOException
 
 @Composable
@@ -75,7 +75,7 @@ fun NewFileDialog(
       ) {
         TextButton(
           onClick = {
-            with(File(path, fileName)) {
+            with(path.newFile(fileName)) {
               try {
                 if (!exists()) {
                   lifecycleScope.launch(Dispatchers.IO) {
@@ -112,7 +112,7 @@ fun NewFileDialog(
         }
         TextButton(
           onClick = {
-            with(File(path, fileName)) {
+            with(path.newFile(fileName)) {
               try {
                 if (!exists()) {
                   lifecycleScope.launch(Dispatchers.IO) {
