@@ -25,7 +25,6 @@ import androidx.compose.ui.viewinterop.AndroidViewBinding
 import com.teixeira.vcspace.activities.base.LocalLifecycleScope
 import com.teixeira.vcspace.databinding.LayoutFileTreeBinding
 import com.teixeira.vcspace.file.File
-import com.teixeira.vcspace.file.newFile
 import com.teixeira.vcspace.file.toFile
 import io.github.dingyi222666.view.treeview.Tree
 import io.github.dingyi222666.view.treeview.TreeView

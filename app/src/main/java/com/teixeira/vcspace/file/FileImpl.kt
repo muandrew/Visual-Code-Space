@@ -30,17 +30,6 @@ import java.io.InputStreamReader
 import java.io.OutputStream
 import java.io.File as JFile
 
-fun newFile(path: String): File {
-  // this only makes sense in context of JFile
-  return JFile(path).toFile()
-}
-
-fun File?.newFile(child: String): File {
-  // this only makes sense in context of JFile
-  val raw: JFile? = null
-  return JFile(raw, child).toFile()
-}
-
 fun JFile.toFile(): File = InternalJFile(this)
 
 @Parcelize
@@ -197,7 +186,6 @@ data class InternalDFile(
   }
 
   companion object CREATOR : Parcelable.Creator<InternalDFile> {
-    const val MIME_PLAIN = "text/plain"
 
     override fun createFromParcel(parcel: Parcel): InternalDFile {
       return TODO("not implemented yet")

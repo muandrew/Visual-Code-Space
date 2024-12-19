@@ -17,7 +17,6 @@ package com.teixeira.vcspace.ui.filetree
 
 import android.os.Parcelable
 import com.teixeira.vcspace.file.File
-import com.teixeira.vcspace.file.newFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize

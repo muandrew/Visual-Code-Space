@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.teixeira.vcspace.events.OnRenameFileEvent
 import com.teixeira.vcspace.file.File
-import com.teixeira.vcspace.file.newFile
 import com.teixeira.vcspace.resources.R
 import com.teixeira.vcspace.utils.launchWithProgressDialog
 import com.teixeira.vcspace.utils.showShortToast
