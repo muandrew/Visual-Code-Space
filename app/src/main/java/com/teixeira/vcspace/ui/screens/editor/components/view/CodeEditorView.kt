@@ -82,15 +82,15 @@ class CodeEditorView(context: Context, file: File) : LinearLayout(context) {
       this.file = file
     }
     configureEditor()
-    readFile(file)
+    readFile(context, file)
 
     addView(binding.root, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
   }
 
-  private fun readFile(file: File) {
+  private fun readFile(context: Context, file: File) {
     setLoading(true)
     editorScope.launch(Dispatchers.IO) {
-      val content = file.readFile2String()
+      val content = file.readFile2String(context)
       val language = createLanguage()
 
       withContext(Dispatchers.Main) {
@@ -107,10 +107,10 @@ class CodeEditorView(context: Context, file: File) : LinearLayout(context) {
       MaterialAlertDialogBuilder(context)
         .setTitle(R.string.file_reload)
         .setMessage(R.string.file_reload_unsaved_message)
-        .setPositiveButton(R.string.yes) { _, _ -> readFile(file!!) }
+        .setPositiveButton(R.string.yes) { _, _ -> readFile(context, file!!) }
         .setNegativeButton(R.string.no, null)
         .show()
-    } else readFile(file!!)
+    } else readFile(context, file!!)
   }
 
   fun undo() = editor.undo()
@@ -129,7 +129,7 @@ class CodeEditorView(context: Context, file: File) : LinearLayout(context) {
     this.file = file
 
     if (updateContent) {
-      readFile(file)
+      readFile(context, file)
     } else updateLanguage()
   }
 
@@ -153,7 +153,7 @@ class CodeEditorView(context: Context, file: File) : LinearLayout(context) {
 
   suspend fun saveFile() = withContext(Dispatchers.IO) {
     val file = file
-    if (file != null && modified && file.write(editor.text.toString())) {
+    if (file != null && modified && file.write(context, editor.text.toString())) {
       setModified(false)
       true
     } else false

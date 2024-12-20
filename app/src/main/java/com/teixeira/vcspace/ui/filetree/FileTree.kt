@@ -34,11 +34,11 @@ import java.io.File as JFile
 @Composable
 fun FileTree(
   modifier: Modifier = Modifier,
-  path: File = JFile(Environment.getExternalStorageDirectory().absolutePath).toFile(),
+  path: File,
   onFileLongClick: (File) -> Unit = {},
   onFileClick: (File) -> Unit
 ) {
-  val fileListLoader = rememberSaveable { FileListLoader() }
+  val fileListLoader = rememberSaveable(saver = FileListLoader.FileListLoaderSaver) { FileListLoader() }
   val tree = remember { createTree(fileListLoader, path) }
 
   val onSurfaceColor = MaterialTheme.colorScheme.onSurface

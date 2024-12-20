@@ -17,23 +17,22 @@ package com.teixeira.vcspace.file
 
 import android.content.Context
 import android.net.Uri
-import android.os.Parcel
-import android.os.Parcelable
+import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
 import com.blankj.utilcode.util.FileIOUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import kotlinx.parcelize.Parcelize
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStreamReader
 import java.io.OutputStream
+import java.util.Locale
 import java.io.File as JFile
 
 fun JFile.toFile(): File = InternalJFile(this)
 
-@Parcelize
-private data class InternalJFile(private val raw: JFile) : File {
+internal data class InternalJFile(private val raw: JFile) : File {
   override val absolutePath: String
     get() = raw.absolutePath
   override val canonicalPath: String
@@ -46,9 +45,18 @@ private data class InternalJFile(private val raw: JFile) : File {
     get() = true
   override val name: String
     get() = raw.name
-  //TODO: consider pulling this out
-  override val mimeType: String?
-    get() = null
+  override val mimeType: String
+    get() {
+      val lastDot = name.lastIndexOf('.')
+      if (lastDot >= 0) {
+        val extension = name.substring(lastDot + 1).lowercase(Locale.getDefault())
+        val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+        if (mime != null) {
+          return mime
+        }
+      }
+      return "application/octet-stream"
+    }
   override val parent: String?
     get() = raw.parent
   override val parentFile: File?
@@ -56,13 +64,8 @@ private data class InternalJFile(private val raw: JFile) : File {
   override val path: String
     get() = raw.path
 
-  override fun newFile(child: String): File
-    = JFile(raw, child).toFile()
-
   override fun listFiles(): Array<out File>?
     = raw.listFiles()?.map { InternalJFile(it) }?.toTypedArray()
-
-  override fun mkdirs(): Boolean = raw.mkdirs()
 
   override fun renameTo(newName: String): File? {
     val dest = JFile(raw.parentFile, newName)
@@ -76,10 +79,11 @@ private data class InternalJFile(private val raw: JFile) : File {
       raw
     )
 
-  override suspend fun readFile2String(): String?
+  override suspend fun readFile2String(context: Context): String?
     = FileIOUtils.readFile2String(raw)
 
   override suspend fun write(
+    context: Context,
     content: String,
     ioDispatcher: CoroutineDispatcher,
   ): Boolean = withContext(ioDispatcher) {
@@ -88,7 +92,22 @@ private data class InternalJFile(private val raw: JFile) : File {
 
 
   override fun asRawFile(): JFile = raw
-  override fun createNewFile(): Boolean = raw.createNewFile()
+  override fun childExists(childName: String): Boolean = JFile(raw, childName).exists()
+
+  override fun createNewFile(fileName: String): File? {
+    val target = JFile(raw, fileName)
+    try {
+      target.createNewFile()
+      return InternalJFile(target)
+    } catch (e: IOException) {
+      return null
+    }
+  }
+
+  override fun createNewDirectory(fileName: String): File? {
+    TODO("Not yet implemented")
+  }
+
   override fun delete(): Boolean = raw.delete()
   override fun exists(): Boolean = raw.exists()
   override fun lastModified(): Long =
@@ -96,23 +115,21 @@ private data class InternalJFile(private val raw: JFile) : File {
 }
 
 data class InternalDFile(
-  private val context: Context,
   private val raw: DocumentFile,
+  private val isDocumentTree: Boolean = false,
 ): File {
   override val absolutePath: String
     get() = raw.uri.toString()
-  // TODO: difference between this and absolute
   override val canonicalPath: String
     get() = raw.uri.toString()
-  // TODO: not a good idea since this can change underneath
   private val _isDirectory = lazy { raw.isDirectory }
   override val isDirectory: Boolean
     get() = _isDirectory.value
+  private val _isFile = lazy { raw.isFile }
   override val isFile: Boolean
-    get() = raw.isFile
+    get() = _isFile.value
   override val isValidText: Boolean
     get() = true
-  // TODO: not a good idea since this can change underneath
   private val _name = lazy { raw.name ?: "(unknown)" }
   override val name: String
     get() = _name.value
@@ -121,21 +138,12 @@ data class InternalDFile(
   override val parent: String?
     get() = raw.parentFile?.uri?.toString()
   override val parentFile: File?
-    get() = raw.parentFile?.let { InternalDFile(context, it) }
-  // TODO: make sure this is correct
+    get() = raw.parentFile?.let { InternalDFile(it) }
   override val path: String
     get() = raw.uri.path ?: "UNKNOWN"
 
-  override fun newFile(child: String): File {
-    TODO("Not yet implemented")
-  }
-
   override fun listFiles(): Array<out File>
-    = raw.listFiles().map { InternalDFile(context, it) }.toTypedArray()
-
-  override fun mkdirs(): Boolean {
-    TODO("Not yet implemented")
-  }
+    = raw.listFiles().map { InternalDFile(it) }.toTypedArray()
 
   override fun renameTo(newName: String): File? =
     if (raw.renameTo(newName)) {
@@ -144,13 +152,14 @@ data class InternalDFile(
 
   override fun uri(context: Context): Uri = raw.uri
 
-  override suspend fun readFile2String(): String {
+  override suspend fun readFile2String(context: Context): String {
     val inputStream = context.contentResolver.openInputStream(raw.uri)
     val reader = BufferedReader(InputStreamReader(inputStream))
     return reader.readLines().joinToString("\n")
   }
 
   override suspend fun write(
+    context: Context,
     content: String,
     ioDispatcher: CoroutineDispatcher,
   ): Boolean = withContext(ioDispatcher) {
@@ -168,31 +177,13 @@ data class InternalDFile(
   }
 
   override fun asRawFile(): JFile? = null
-
-  // TODO: audit use of create new file as semantics are different
-  override fun createNewFile(): Boolean {
-    TODO("Not yet implemented")
-  }
+  override fun childExists(childName: String): Boolean = raw.findFile(childName) != null
+  override fun createNewFile(fileName: String): File?
+    = raw.createFile("", fileName)?.let { InternalDFile(it) }
+  override fun createNewDirectory(fileName: String): File?
+    = raw.createDirectory(fileName)?.let { InternalDFile(it) }
 
   override fun delete(): Boolean = raw.delete()
   override fun exists(): Boolean = raw.exists()
   override fun lastModified(): Long = raw.lastModified()
-
-  override fun writeToParcel(parcel: Parcel, flags: Int) {
-  }
-
-  override fun describeContents(): Int {
-    return 0
-  }
-
-  companion object CREATOR : Parcelable.Creator<InternalDFile> {
-
-    override fun createFromParcel(parcel: Parcel): InternalDFile {
-      return TODO("not implemented yet")
-    }
-
-    override fun newArray(size: Int): Array<InternalDFile?> {
-      return arrayOfNulls(size)
-    }
-  }
 }

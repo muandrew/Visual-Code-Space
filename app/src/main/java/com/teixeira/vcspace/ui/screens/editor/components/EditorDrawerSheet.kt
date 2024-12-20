@@ -65,7 +65,6 @@ import com.teixeira.vcspace.ui.screens.editor.components.drawer.NavRail
 import com.teixeira.vcspace.ui.screens.editor.components.drawer.OpenFolderActions
 import com.teixeira.vcspace.ui.screens.file.FileExplorerViewModel
 import com.teixeira.vcspace.utils.ApkInstaller
-import com.teixeira.vcspace.utils.isValidTextFile
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 

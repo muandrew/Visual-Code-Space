@@ -32,12 +32,11 @@ package com.teixeira.vcspace.file
 
 import android.content.Context
 import android.net.Uri
-import android.os.Parcelable
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import java.io.File as JFile
 
-interface File : Parcelable {
+interface File {
   val absolutePath: String
   val canonicalPath: String
   val isDirectory: Boolean
@@ -50,17 +49,18 @@ interface File : Parcelable {
   val path: String
 
   fun asRawFile(): JFile?
-  fun createNewFile(): Boolean
+  fun childExists(childName: String): Boolean
+  fun createNewFile(fileName: String): File?
+  fun createNewDirectory(fileName: String): File?
   fun delete(): Boolean
   fun exists(): Boolean
   fun lastModified(): Long
   fun listFiles(): Array<out File>?
-  fun mkdirs(): Boolean
-  fun newFile(child: String): File
   fun renameTo(newName: String): File?
   fun uri(context: Context): Uri
-  suspend fun readFile2String(): String?
+  suspend fun readFile2String(context: Context): String?
   suspend fun write(
+    context: Context,
     content: String,
     ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Boolean

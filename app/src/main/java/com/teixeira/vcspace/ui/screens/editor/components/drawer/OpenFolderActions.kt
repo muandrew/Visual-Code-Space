@@ -15,7 +15,6 @@
 
 package com.teixeira.vcspace.ui.screens.editor.components.drawer
 
-import android.content.ContentProvider
 import android.content.ContentResolver
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -73,7 +72,7 @@ fun OpenFolderActions(
   ) { uri ->
     if (uri != null) DocumentFile.fromTreeUri(context, uri)?.let {
       val file = if (ContentResolver.SCHEME_CONTENT == it.uri.scheme) {
-        InternalDFile(context, it)
+        InternalDFile(it)
       } else {
         UriUtils.uri2File(it.uri).toFile()
       }
