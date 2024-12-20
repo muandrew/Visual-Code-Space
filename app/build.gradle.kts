@@ -12,6 +12,7 @@ plugins {
 android {
   namespace = "com.teixeira.vcspace"
 
+  ndkVersion = "27.1.12297006"
   androidResources {
     @Suppress("UnstableApiUsage")
     generateLocaleConfig = true
@@ -64,6 +65,7 @@ android {
     }
     debug {
       isMinifyEnabled = false
+      applicationIdSuffix = "debug"
       signingConfig = signingConfigs.getByName("general")
       proguardFiles(
         getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -98,7 +100,7 @@ android {
   externalNativeBuild {
     cmake {
       path = file("src/main/cpp/CMakeLists.txt")
-      version = "3.22.1"
+      version = "3.31.2"
     }
   }
 }
