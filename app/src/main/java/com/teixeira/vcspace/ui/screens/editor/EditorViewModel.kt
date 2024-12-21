@@ -23,6 +23,8 @@ import com.blankj.utilcode.util.FileUtils
 import com.google.gson.Gson
 import com.teixeira.vcspace.activities.EditorActivity.Companion.LAST_OPENED_FILES_JSON_PATH
 import com.teixeira.vcspace.extensions.toFile
+import com.teixeira.vcspace.file.File
+import com.teixeira.vcspace.file.toFile
 import com.teixeira.vcspace.models.FileHistory
 import com.teixeira.vcspace.ui.screens.editor.components.view.CodeEditorView
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
+import java.io.File as JFile
 
 class EditorViewModel : ViewModel() {
   data class OpenedFile(
@@ -86,7 +88,7 @@ class EditorViewModel : ViewModel() {
     val lastOpenedFiles = Gson().toJson(FileHistory(uiState.value.openedFiles.map { it.file.path }))
 
     viewModelScope.launch(Dispatchers.IO) {
-      File(LAST_OPENED_FILES_JSON_PATH).apply {
+      JFile(LAST_OPENED_FILES_JSON_PATH).apply {
         FileUtils.createOrExistsFile(this)
         writeText(lastOpenedFiles)
       }
@@ -94,12 +96,12 @@ class EditorViewModel : ViewModel() {
   }
 
   fun lastOpenedFiles(): List<File> {
-    val file = File(LAST_OPENED_FILES_JSON_PATH)
+    val file = JFile(LAST_OPENED_FILES_JSON_PATH)
     if (!file.exists()) return emptyList()
 
     val fileHistory =
       Gson().fromJson(file.readText(), FileHistory::class.java) ?: return emptyList()
-    return fileHistory.lastOpenedFilesPath.map { it.toFile() }
+    return fileHistory.lastOpenedFilesPath.map { it.toFile().toFile() }
   }
 
   fun setModified(file: File, modified: Boolean) {
@@ -148,7 +150,7 @@ class EditorViewModel : ViewModel() {
     )
   }
 
-  fun addFiles(vararg files: File) {
+  fun addFiles(files: List<File>) {
     viewModelScope.launch {
       files.forEach { addFile(it) }
     }

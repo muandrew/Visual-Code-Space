@@ -81,6 +81,7 @@ import com.teixeira.vcspace.editor.listener.OnImportComponentListener
 import com.teixeira.vcspace.editor.textaction.EditorTextActionItem
 import com.teixeira.vcspace.editor.textaction.actionItems
 import com.teixeira.vcspace.editor.textaction.editorTextActionWindow
+import com.teixeira.vcspace.file.toFile
 import com.teixeira.vcspace.keyboard.CommandPaletteManager
 import com.teixeira.vcspace.resources.R
 import com.teixeira.vcspace.ui.LocalToastHostState
@@ -232,7 +233,7 @@ fun EditorScreen(
     } ?: run {
       val tempFile = File(context.cacheDir, "untitled.txt")
       tempFile.deleteOnExit()
-      viewModel.addFile(tempFile)
+      viewModel.addFile(tempFile.toFile())
 
       // NoOpenedFiles()
     }

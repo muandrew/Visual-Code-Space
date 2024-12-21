@@ -34,6 +34,7 @@ import com.google.ai.client.generativeai.type.asTextOrNull
 import com.teixeira.vcspace.app.strings
 import com.teixeira.vcspace.core.ai.Gemini
 import com.teixeira.vcspace.editor.VCSpaceEditor
+import com.teixeira.vcspace.file.extension
 import com.teixeira.vcspace.utils.launchWithProgressDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

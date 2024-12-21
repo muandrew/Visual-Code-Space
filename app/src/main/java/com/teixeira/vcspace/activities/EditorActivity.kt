@@ -80,6 +80,8 @@ import com.teixeira.vcspace.editor.events.OnKeyBindingEvent
 import com.teixeira.vcspace.events.OnOpenFolderEvent
 import com.teixeira.vcspace.extensions.open
 import com.teixeira.vcspace.extensions.toFile
+import com.teixeira.vcspace.file.File
+import com.teixeira.vcspace.file.toFile
 import com.teixeira.vcspace.github.auth.Api
 import com.teixeira.vcspace.github.auth.UserInfo
 import com.teixeira.vcspace.keyboard.CommandPaletteManager
@@ -101,7 +103,6 @@ import kotlinx.coroutines.withContext
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import java.io.File
 
 object Editor {
   val LocalEditorDrawerState = compositionLocalOf<DrawerState> {
@@ -137,9 +138,10 @@ class EditorActivity : BaseComposeActivity() {
   fun onContentChangeEvent(e: OnContentChangeEvent) {
     Log.d("EditorActivity", "Content change event received: ${e.file?.name}")
 
-    if (e.file != null) {
+    val file = e.file
+    if (file != null) {
       editorViewModel.setModified(
-        e.file!!,
+        file,
         e.event.action != ContentChangeEvent.ACTION_SET_NEW_TEXT
       )
     }
@@ -339,11 +341,11 @@ class EditorActivity : BaseComposeActivity() {
 
             if (manifest != null) {
               val pluginPath = "$pluginsPath/${manifest.packageName}"
-              val filesToOpen = arrayOf(
-                "$pluginPath/manifest.json".toFile(),
-                "$pluginPath/${manifest.scripts.first().name}".toFile()
+              val filesToOpen = listOf(
+                "$pluginPath/manifest.json".toFile().toFile(),
+                "$pluginPath/${manifest.scripts.first().name}".toFile().toFile()
               )
-              editorViewModel.addFiles(*filesToOpen)
+              editorViewModel.addFiles(filesToOpen)
             }
           }
 
@@ -351,7 +353,8 @@ class EditorActivity : BaseComposeActivity() {
           if (externalFileUri != null &&
             !externalFileUri.toString().startsWith(BuildConfig.OAUTH_REDIRECT_URL)
           ) {
-            editorViewModel.addFile(UriUtils.uri2File(externalFileUri))
+            // TODO add file thing.
+            editorViewModel.addFile(UriUtils.uri2File(externalFileUri).toFile())
           }
 
           onCreate()
