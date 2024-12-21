@@ -62,7 +62,7 @@ fun FileTree(
     }
 
     lifecycleScope.launch {
-      fileListLoader.loadFileList(path)
+      fileListLoader.loadFileList(path, lifecycleScope)
       treeview.refresh()
     }
   }

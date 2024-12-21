@@ -19,10 +19,12 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.SaverScope
 import com.teixeira.vcspace.file.File
 import com.teixeira.vcspace.file.toFile
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 import java.io.File as JFile
 
 class FileListLoader(
@@ -35,7 +37,10 @@ class FileListLoader(
     }
   }
 
-  suspend fun loadFileList(path: File, additionalDepth: Int = 1): List<File> = withContext(Dispatchers.Main) {
+  suspend fun loadFileList(
+	  path: File,
+	  prefetchScope: CoroutineScope,
+	  additionalDepth: Int = 0): List<File> = withContext(Dispatchers.Main) {
     when (val value = cacheFiles[path.absolutePath]) {
       null -> {
         val deferred = async(Dispatchers.IO) {
@@ -46,7 +51,9 @@ class FileListLoader(
         cacheFiles[path.absolutePath] = Loaded(res)
         if (additionalDepth > 0) {
           res.forEach { child ->
-            loadFileList(child, additionalDepth - 1)
+		    prefetchScope.launch {
+		  	  loadFileList(child, prefetchScope, additionalDepth - 1)
+		    }
           }
         }
         res
