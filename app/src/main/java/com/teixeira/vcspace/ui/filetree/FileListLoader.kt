@@ -38,9 +38,9 @@ class FileListLoader(
   }
 
   suspend fun loadFileList(
-	  path: File,
 	  prefetchScope: CoroutineScope,
-	  additionalDepth: Int = 0): List<File> = withContext(Dispatchers.Main) {
+	  path: File,
+	  additionalDepth: Int = 1): List<File> = withContext(Dispatchers.Main) {
     when (val value = cacheFiles[path.absolutePath]) {
       null -> {
         val deferred = async(Dispatchers.IO) {
@@ -51,9 +51,9 @@ class FileListLoader(
         cacheFiles[path.absolutePath] = Loaded(res)
         if (additionalDepth > 0) {
           res.forEach { child ->
-		    prefetchScope.launch {
-		  	  loadFileList(child, prefetchScope, additionalDepth - 1)
-		    }
+		        prefetchScope.launch {
+		  	      loadFileList(prefetchScope, child, additionalDepth - 1)
+		        }
           }
         }
         res

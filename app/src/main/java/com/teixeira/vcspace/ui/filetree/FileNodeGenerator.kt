@@ -16,13 +16,14 @@
 package com.teixeira.vcspace.ui.filetree
 
 import com.teixeira.vcspace.file.File
-import kotlinx.coroutines.GlobalScope
 import io.github.dingyi222666.view.treeview.AbstractTree
 import io.github.dingyi222666.view.treeview.Tree
 import io.github.dingyi222666.view.treeview.TreeNode
 import io.github.dingyi222666.view.treeview.TreeNodeGenerator
+import kotlinx.coroutines.CoroutineScope
 
 class FileNodeGenerator(
+  private val prefetchScope: CoroutineScope,
   private val rootPath: File,
   private val fileListLoader: FileListLoader
 ) : TreeNodeGenerator<File> {
@@ -46,10 +47,10 @@ class FileNodeGenerator(
 
   override suspend fun fetchChildData(targetNode: TreeNode<File>): Set<File> {
     val path = targetNode.requireData()
-    var files = fileListLoader.getCacheFileList(path )
+    var files = fileListLoader.getCacheFileList(path)
 
     if (files.isEmpty()) {
-      files = fileListLoader.loadFileList(path,GlobalScope)
+      files = fileListLoader.loadFileList(prefetchScope, path)
     }
 
     return files.toSet()
